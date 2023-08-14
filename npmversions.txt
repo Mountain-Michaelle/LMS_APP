@@ -1,0 +1,8 @@
+ First version: current: { node: 'v18.17.0', npm: '9.8.1' }
+
+ Uprgraded version: 
+ npm WARN EBADENGINE Unsupported engine {
+npm WARN EBADENGINE   package: 'lms_frontend@0.1.0',
+npm WARN EBADENGINE   required: { npm: '>=8.0.0 <= 9.6.6', node: '>=16.0.0 <= 18.13.0' },
+npm WARN EBADENGINE   current: { node: 'v18.17.0', npm: '9.8.1' }
+npm WARN EBADENGINE }

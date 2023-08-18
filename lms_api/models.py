@@ -66,15 +66,17 @@ class CourseChapter(models.Model):
 
      
      
-     
 class Student(models.Model):
     full_name = models.CharField(max_length=100)
-    email = models.EmailField(max_length=100)
-    password = models.CharField(max_length=100)
-    qualification = models.CharField(max_length=200)
-    mobile_no = models.CharField(max_length=20)
-    address = models.TextField()
-    interested_categories = models.TextField()
+    admission_letter = models.FileField(upload_to='admission_letter/%Y/%m/%d/')
+    reg_no = models.CharField(max_length=200, blank=True, null=True)
+    email = models.EmailField(max_length=200)
+    password = models.CharField(max_length=200)
+    password2 = models.CharField(max_length=200)
+    qualification = models.CharField(max_length=200, blank=True, null=True)
+    mobile_no = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    interested_course = models.TextField()
 
     def __str__(self, *arg):
         return self.full_name.split('', arg)

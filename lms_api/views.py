@@ -1,13 +1,14 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import Teacher, Course, CourseCategory, CourseChapter
-from .serializers import TeacherSerializer,CourseCategorySerilizer, CourseListSerializer, CourseChapterSerializer, CourseSerializer2, TeacherSerializer2
+from .models import Teacher, Course, CourseCategory, CourseChapter, Student
+from .serializers import TeacherSerializer,CourseCategorySerilizer, CourseListSerializer, CourseChapterSerializer, CourseSerializer2, StudentCreateSerializer
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import permissions
 from rest_framework import generics, viewsets
-# Create your views here.
 
+
+# Create your views here.
 class TeacherList(generics.ListCreateAPIView):
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
@@ -34,7 +35,6 @@ def teacher_login(request):
                              'teacher_name': teacher_data.full_name, 'teacher_course': teacher_data.skills})
     else:
         return JsonResponse({'login': False})
-        navigate
     
 class CourseCategoryList(generics.ListCreateAPIView):
     queryset = CourseCategory.objects.all()
@@ -98,5 +98,26 @@ class TeacherAndCourseDetails(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'pk'
     queryset = Course.objects.all()
     
+    
+###### These are all about student registrations and its functionalities accounding to want ##### 
+class StudentListCreate(generics.ListCreateAPIView):
+    serializer_class = StudentCreateSerializer
+    queryset = Student.objects.all()
+    
+
+@csrf_exempt
+def student__login(request):
+    email = request.POST['email']
+    password = request.POST['password']
+    
+    try:
+        student_data = Student.objects.filter().get(email=email, password=password)
+    except Student.DoesNotExist:
+        student_data = None
         
-        
+    
+    if student_data:
+        return JsonResponse({
+            'login': True, 'student_id': student_data.pk })
+    else:
+        return JsonResponse({'login': False})     

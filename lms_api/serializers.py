@@ -58,3 +58,14 @@ class CourseSerializer2(serializers.ModelSerializer):
       fields = ('id', 'category', 'topic', 'teacher', 'course_image',  
         'course_duration', 'time', 'course_chapters', 'related_course' )
       depth=1
+      
+
+## // Student Registeration and functionalities
+
+class StudentCreateSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = models.Student
+    fields = (
+      'id', 'full_name', 'admission_letter', 'email', 'password', 'password2', 'qualification', 'interested_course'
+    )
+    

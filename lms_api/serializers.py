@@ -65,7 +65,12 @@ class CourseSerializer2(serializers.ModelSerializer):
 class StudentCreateSerializer(serializers.ModelSerializer):
   class Meta:
     model = models.Student
-    fields = (
+    fields = [
       'id', 'full_name', 'admission_letter', 'email', 'password', 'password2', 'qualification', 'interested_course'
-    )
+    ]
     
+    
+class StudentErollSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = models.StudentCourseEnrollment
+    fields = ['id', 'course', 'student', 'enrolled_time']

@@ -67,6 +67,7 @@ class CourseChapter(models.Model):
      
      
 class Student(models.Model):
+    id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
     admission_letter = models.FileField(upload_to='admission_letter/%Y/%m/%d/')
     reg_no = models.CharField(max_length=200, blank=True, null=True)
@@ -79,6 +80,13 @@ class Student(models.Model):
     interested_course = models.TextField()
 
     def __str__(self, *arg):
-        return self.full_name.split('', arg)
+        return self.full_name
 
-
+class StudentCourseEnrollment(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrolled_courses')
+    student  = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrolled_student')
+    enrolled_time = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name_plural ="Enrolled Courses"
+    

@@ -21,5 +21,7 @@ urlpatterns = [
    
    ##### These are the student phase of the apppliction routers ######
    path('student/list/', views.StudentListCreate.as_view()),
-   path('student/login/', views.student__login, name="student-login")
+   path('student/login/', views.student__login, name="student-login"),
+   path('student-enroll-course/', views.StudentEnrollmentView.as_view() ),
+   path('student-enroll-course/<int:course_id>/<int:student_id>/', views.fetch_enrolled_student ),
 ]

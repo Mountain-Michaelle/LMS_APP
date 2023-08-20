@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import Teacher, Course, CourseCategory, CourseChapter, Student
-from .serializers import TeacherSerializer,CourseCategorySerilizer, CourseListSerializer, CourseChapterSerializer, CourseSerializer2, StudentCreateSerializer
+from .models import Teacher, Course, CourseCategory, CourseChapter, Student, StudentCourseEnrollment
+from .serializers import TeacherSerializer,CourseCategorySerilizer, \
+    CourseListSerializer, CourseChapterSerializer, CourseSerializer2, \
+    StudentCreateSerializer, StudentErollSerializer
+    
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import permissions
@@ -99,7 +102,7 @@ class TeacherAndCourseDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     
     
-###### These are all about student registrations and its functionalities accounding to want ##### 
+###### These are all about student registrations and its functionalities ##### 
 class StudentListCreate(generics.ListCreateAPIView):
     serializer_class = StudentCreateSerializer
     queryset = Student.objects.all()
@@ -118,6 +121,25 @@ def student__login(request):
     
     if student_data:
         return JsonResponse({
-            'login': True, 'student_id': student_data.pk })
+            'login': True, 'student_id': student_data.id })
     else:
         return JsonResponse({'login': False})     
+
+
+
+class StudentEnrollmentView(generics.ListCreateAPIView):
+    serializer_class = StudentErollSerializer
+    queryset = StudentCourseEnrollment.objects.all()
+    
+
+def fetch_enrolled_student(request, course_id, student_id):
+    student = Student.objects.filter(id=student_id).first()
+    course = Course.objects.filter(id=course_id).first()
+    enrolledStatus = StudentCourseEnrollment.objects.filter(course=course, student=student).count()
+    if enrolledStatus:
+        return JsonResponse({'enrolled':True})
+    else:
+        return JsonResponse({'enrolled': False})
+    
+    
+    

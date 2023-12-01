@@ -17,6 +17,7 @@ urlpatterns = [
    path('chapter/<int:course_id>/', views.CourseChapterList.as_view()),
    path('chapter/<int:pk>/edit', views.CourseChapterDetails.as_view()),
    path('student/courses/<int:pk>/', views.TeacherAndCourseDetails.as_view()),
+   path('course-list/chapter/<int:pk>/', views.CourseChapterRating.as_view()),
    #path('student/course/<int:id>/', views.CourseLIstView.as_view()),
    
    ##### These are the student phase of the apppliction routers ######
@@ -24,4 +25,15 @@ urlpatterns = [
    path('student/login/', views.student__login, name="student-login"),
    path('student-enroll-course/', views.StudentEnrollmentView.as_view() ),
    path('student-enroll-course/<int:course_id>/<int:student_id>/', views.fetch_enrolled_student ),
+   path('fetch-enrolled-student/<int:course_id>', views.EnrrolledStudentList.as_view()),
+   path('fetched-enrolled-student/<int:course_id>/', views.FetchedEnrolledStudentLIst.as_view()),
+   path('course-rating/<int:course_id>/', views.CourseRatingCreateView.as_view()),
+   path('course-rating/chapter/<int:course_id>/', views.CourseRatingSingleView.as_view()),
+   path('rating-status/<int:student_id>/<int:course_id>/', views.fetch_rating_status),
+   path('student-favorite-course/<int:student_id>/', views.StudentFavoriteCourseListView.as_view()),
+   path('fetch-favorite-status/<int:student_id>/<int:course_id>/', views.fetch_favorite_course_status, name="fetch-favortie"),
+   path('remove-favorite-course/<int:student_id>/<int:course_id>/', views.remove_favorite_course, name="remove-favorite"),
+   path('student-assignment/<int:course_id>/<int:teacherId>/', views.StudentAssignmentView.as_view() ),
+   path('student-assignment-detail/<int:pk>/', views.StudentAssignmentView.as_view() ),
+   path('student-assignment-submit/<int:course_id>/<int:student_id/', views.StudentAssignmentSubmitView.as_view()),
 ]

@@ -1,9 +1,13 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import Teacher, Course, CourseCategory, CourseChapter, Student, StudentCourseEnrollment
+from .models import (Teacher, Course, CourseCategory, CourseChapter, Student, StudentCourseEnrollment,
+                    CourseRating, StudentFavouriteCourse, StudentFavouriteCourse, StudentAssignment, StudentAssignmentSubmission)
+                    
 from .serializers import TeacherSerializer,CourseCategorySerilizer, \
     CourseListSerializer, CourseChapterSerializer, CourseSerializer2, \
-    StudentCreateSerializer, StudentErollSerializer
+    StudentCreateSerializer, StudentErollSerializer, EnrolledStudentSerializer, CourseRatingSerializer, \
+    CourseChapterSerializerGet, StudentFavoriteCourseSerilizer, StudentAssignmentSerializer, StudentAssignmentSubmitSerializer
+   
     
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -85,6 +89,10 @@ class CourseChapterList(generics.ListAPIView):
         course_id = self.kwargs['course_id']
         course = Course.objects.get(pk=course_id)
         return CourseChapter.objects.filter(ref_course=course)
+    
+class CourseChapterRating(generics.RetrieveAPIView):
+    serializer_class = CourseChapterSerializerGet
+    queryset = CourseChapter.objects.all()
 
 class CourseChapterDetails(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseChapterSerializer
@@ -135,11 +143,112 @@ class StudentEnrollmentView(generics.ListCreateAPIView):
 def fetch_enrolled_student(request, course_id, student_id):
     student = Student.objects.filter(id=student_id).first()
     course = Course.objects.filter(id=course_id).first()
+    studentEnrol = StudentCourseEnrollment.objects.filter(student=student).count()
     enrolledStatus = StudentCourseEnrollment.objects.filter(course=course, student=student).count()
     if enrolledStatus:
-        return JsonResponse({'enrolled':True})
+        return JsonResponse({'enrolled':True, 'studentEnrol':studentEnrol})  
     else:
         return JsonResponse({'enrolled': False})
     
+
+class EnrrolledStudentList(generics.ListAPIView):
+    queryset=StudentCourseEnrollment.objects.all()
+    serializer_class = StudentErollSerializer
+    
+    def get__query(self):
+        course_id = self.kwargs['course_id']
+        course = Course.objects.get(pk=course_id)
+        return StudentCourseEnrollment.objects.filter(course=course)
     
     
+class FetchedEnrolledStudentLIst(generics.ListAPIView):
+    #queryset = StudentCourseEnrollment.objects.order_by('enrolled_time')
+    serializer_class = EnrolledStudentSerializer
+    
+    def get_queryset(self):
+        course_id = self.kwargs['course_id']
+        course = Course.objects.get(pk=course_id)
+        return StudentCourseEnrollment.objects.filter(course=course)
+    
+class CourseRatingCreateView(generics.ListCreateAPIView):
+    serializer_class = CourseRatingSerializer
+    
+    def get_queryset(self):
+        course_id = self.kwargs['course_id']
+        course = CourseChapter.objects.get(pk=course_id)
+        return CourseRating.objects.filter(course=course)
+
+class CourseRatingSingleView(generics.ListAPIView):
+    serializer_class = CourseRatingSerializer
+    
+    def get_queryset(self):
+        course_id = self.kwargs['course_id']
+        print("course id ", course_id)
+        course = CourseChapter.objects.get(id=course_id)
+        return CourseRating.objects.filter(course=course)
+    
+    
+## Fetching rating status Views, using a function based view
+
+def fetch_rating_status(request, student_id, course_id):
+    student = Student.objects.filter(id=student_id).first()
+    course = CourseChapter.objects.filter(id=course_id).first()
+    ratingStatus = CourseRating.objects.filter(course=course, student=student).count()
+    
+    if ratingStatus:
+        return JsonResponse({'hasRated': True})
+    else:
+        return JsonResponse({'hasRated': False})
+
+### Add Favourite
+class StudentFavoriteCourseListView(generics.ListCreateAPIView):
+    queryset = StudentFavouriteCourse.objects.order_by('-course')
+    serializer_class =  StudentFavoriteCourseSerilizer
+
+## Remove Favourite;
+
+def fetch_favorite_course_status(request, student_id, course_id):
+    student = Student.objects.filter(id=student_id).first()
+    course = CourseChapter.objects.filter(id=course_id).first()
+    favoriteStatus = StudentFavouriteCourse.objects.filter(course=course, student=student).first()
+    
+    if favoriteStatus and favoriteStatus.status == True:
+        return JsonResponse({"favorite": True})
+    else:
+        return JsonResponse({"favorite": False})
+
+def remove_favorite_course(request, course_id, student_id):
+    student = Student.objects.filter(id=student_id).first()
+    course = CourseChapter.objects.filter(id=course_id).first()
+    favoriteStatus = StudentFavouriteCourse.objects.filter(course=course, student=student).delete()
+    if favoriteStatus:
+        return JsonResponse({"favorite": True})
+    else:
+        return JsonResponse({"favorite": False})
+    
+
+class StudentAssignmentView(generics.ListCreateAPIView):
+    #queryset = StudentAssignment.objects.order_by('-date')
+    serializer_class = StudentAssignmentSerializer 
+    def get_queryset(self):
+        teacher_id = self.kwargs['teacherId']
+        course_id = self.kwargs['course_id']
+        teacher = Teacher.objects.get(id=teacher_id)
+        course = Course.objects.get(pk=course_id)
+        return StudentAssignment.objects.filter(teacher=teacher, course=course)
+    
+
+class StudentAssignmentView(generics.RetrieveAPIView):
+    queryset = StudentAssignment.objects.all()
+    serializer_class = StudentAssignmentSerializer
+    lookup_field = 'pk'
+
+class StudentAssignmentSubmitView(generics.ListCreateAPIView):
+    #queryset = StudentAssignmentSubmission.objects.order_by('-date')
+    serializer_class = StudentAssignmentSubmitSerializer
+    def get_queryset(self):
+        student_id = self.kwargs['studentId']
+        course_id = self.kwargs['course_id']
+        student = Student.objects.get(id=student_id)
+        course = Course.objects.get(pk=course_id)
+        return StudentAssignment.objects.filter(student=student, course=course)

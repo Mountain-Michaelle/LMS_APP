@@ -62,7 +62,7 @@ ROOT_URLCONF = 'LMS.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'build')],
+        'DIRS': [os.path.join(BASE_DIR, 'Account',  'build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -101,13 +101,20 @@ WSGI_APPLICATION = 'LMS.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'lms_test4',
+        'NAME': 'lms_test7',
         'USER': 'postgres',
         'PASSWORD': '41240075',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'staugustineimtmail@gmail.com'
+EMAIL_HOST_PASSWORD = 'iedcoohcmthdtlkt'
 
 
 # Password validation
@@ -180,7 +187,9 @@ REST_FRAMEWORK = {
     ]
 }
 
+## Custom Reg. Number login overriding
 AUTHENTICATION_BACKENDS = [
     'Account.backend.CustomBackend',
+    'Account.backend.CustomTeaherAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]

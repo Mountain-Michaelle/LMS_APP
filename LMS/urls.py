@@ -21,7 +21,7 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('lms_api.urls')),
+    path('lms/', include('lms_api.urls')),
     path('account/', include('Account.urls')),
     path('api-auth/', include('rest_framework.urls')),
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

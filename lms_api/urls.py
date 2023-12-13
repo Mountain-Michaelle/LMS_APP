@@ -18,10 +18,10 @@ urlpatterns = [
    path('chapter/<int:pk>/edit', views.CourseChapterDetails.as_view()),
    path('student/courses/<int:pk>/', views.TeacherAndCourseDetails.as_view()),
    path('course-list/chapter/<int:pk>/', views.CourseChapterRating.as_view()),
-   #path('student/course/<int:id>/', views.CourseLIstView.as_view()),
+   path('student/course/<int:id>/', views.CourseLIstView.as_view()),
    
    ##### These are the student phase of the apppliction routers ######
-   path('student/list/', views.StudentListCreate.as_view()),
+   path('student/list/create/', views.StudentListCreate.as_view()),
    path('student/login/', views.student__login, name="student-login"),
    path('student-enroll-course/', views.StudentEnrollmentView.as_view() ),
    path('student-enroll-course/<int:course_id>/<int:student_id>/', views.fetch_enrolled_student ),

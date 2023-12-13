@@ -51,7 +51,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -62,7 +62,7 @@ ROOT_URLCONF = 'LMS.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'Account',  'build')],
+        'DIRS': [os.path.join(BASE_DIR, 'build'), os.path.join(BASE_DIR, "Account", 'build1')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -101,7 +101,7 @@ WSGI_APPLICATION = 'LMS.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'lms_test7',
+        'NAME': 'lms_test10',
         'USER': 'postgres',
         'PASSWORD': '41240075',
         'HOST': '127.0.0.1',
@@ -135,7 +135,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-#Token Authentication setting for the Django app
+# Token Authentication setting for the Django app
 REST_FRAMEWORK={
     'DEFAULT_AUTHENTICATION_CLASSES':['rest_framework.authentication.TokenAuthentication'],
     'DEFAULT_PERMISSION_CLASSES':['rest_framework.permissions.AllowAny']
@@ -159,7 +159,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'build/static')
 ]
@@ -175,17 +175,17 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-
+    "http://127.0.0.1:8000"
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES' : [
-        'rest_framework.permissions.IsAuthenticated'
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES' : [
-        'rest_framework.authentication.SessionAuthentication'
-    ]
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_PERMISSION_CLASSES' : [
+#         'rest_framework.permissions.IsAuthenticated'
+#     ],
+#     'DEFAULT_AUTHENTICATION_CLASSES' : [
+#         # 'rest_framework.authentication.SessionAuthentication'
+#     ]
+# }
 
 ## Custom Reg. Number login overriding
 AUTHENTICATION_BACKENDS = [
@@ -193,3 +193,5 @@ AUTHENTICATION_BACKENDS = [
     'Account.backend.CustomTeaherAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+# CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:8000" ]

@@ -8,14 +8,15 @@ from .serializers import TeacherSerializer,CourseCategorySerilizer, \
     StudentCreateSerializer, StudentErollSerializer, EnrolledStudentSerializer, CourseRatingSerializer, \
     CourseChapterSerializerGet, StudentFavoriteCourseSerilizer, StudentAssignmentSerializer, StudentAssignmentSubmitSerializer
    
-    
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework import permissions
 from rest_framework import generics, viewsets
 
 
 # Create your views here.
+@method_decorator(csrf_exempt, name="dispatch")
 class TeacherList(generics.ListCreateAPIView):
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
@@ -76,7 +77,7 @@ class TeacherCourseDetails(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseListSerializer
     queryset = Course.objects.all()
 
-
+@method_decorator(csrf_exempt, name="dispatch")
 class CourseChapterView(generics.ListCreateAPIView):
     queryset = CourseChapter.objects.all()
     serializer_class = CourseChapterSerializer
@@ -111,6 +112,7 @@ class TeacherAndCourseDetails(generics.RetrieveUpdateDestroyAPIView):
     
     
 ###### These are all about student registrations and its functionalities ##### 
+@method_decorator(csrf_exempt, name="dispatch")
 class StudentListCreate(generics.ListCreateAPIView):
     serializer_class = StudentCreateSerializer
     queryset = Student.objects.all()

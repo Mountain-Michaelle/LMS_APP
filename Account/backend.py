@@ -1,5 +1,6 @@
 from django.contrib.auth.backends import ModelBackend
 from .models import StudentUserProfile, TeacherUserProfile
+from django.contrib.auth.models import User
 
 ## Reg number sign up overriding.
 class CustomBackend(ModelBackend):

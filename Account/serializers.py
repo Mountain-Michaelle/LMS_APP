@@ -13,11 +13,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email')
 
 class StudentUserSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
     reg_no = CaseInsensitiveCustomRegField()
     class Meta:
         model = StudentUserProfile
-        fields = ("id", "user", "email", "reg_no", "student", "first_name", "last_name", "is_student", "phone",
+        fields = ("id", "email", "reg_no", "student", "first_name", "last_name", "is_student", "phone",
                   "country", "state", "postal",  "hobbies")
 
 class TeacherUserSerializer(serializers.ModelSerializer):
@@ -25,5 +24,4 @@ class TeacherUserSerializer(serializers.ModelSerializer):
         model = TeacherUserProfile
         fields = ("teacher", "first_name", "last_name", "is_teacher", "phone", "country",
                   "state", "course", "postal", "course", "hobbies", "email",)
-        
         

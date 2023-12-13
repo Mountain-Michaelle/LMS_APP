@@ -10,6 +10,7 @@ from django.conf import settings
 import random
 from django.utils import timezone
 from django.core.mail import send_mail
+from django.core.exceptions import ObjectDoesNotExist
 ## ends
 from . import models
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
@@ -32,7 +33,7 @@ class CheckIsAuthenticated(APIView):
         except:
             return Response({"error": "Error checking authentication status"})
 
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class StudentSignUpView(APIView):
     permission_classes = (permissions.AllowAny,)
     
@@ -69,15 +70,15 @@ class StudentSignUpView(APIView):
                                     return Response({'success': 'Student acount created successfully!'})
                                     
                         else:
-                            return Response({"error": f"{reg_no} not valid, ensure the format follows the school standard, eg.' imt/unn/b.sc/cos/year/reg'. "}) 
+                            return Response({"error": f" You must provide your valid imt degree program registration number eg.' imt/unn/b.sc/cos/year/reg'. "}) 
             else:
                 return Response({'error': 'passwords do not match'})
         except:
-            return Response({"error": "An error occurred, probably you violated the School Reg. No. format"})
+            return Response({"error": "Field Violation(s)"})
     
     
 
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class TeacherSignupView(APIView):
     permission_classes = (permissions.AllowAny,)
     
@@ -117,23 +118,22 @@ class TeacherSignupView(APIView):
             return Response({"error": "Something went wrong on teacher registration"})
     
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-class getCSRFToken(APIView):
-    permission_classes = (permissions.AllowAny,)
-    
-    def get(self, request, format=None):
-        return Response({'success': 'CSRF cookie set'}) 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class getCSRFToken(APIView):
+#     permission_classes = (permissions.AllowAny,)
+#     def get(self, request, format=None):
+#         return Response({'success': 'CSRF cookie set'}) 
     
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class StudentLoginView(APIView):
     permission_classes = (permissions.AllowAny,)
     
     def post(self, request, format=None):
         data = self.request.data 
+        reg_no = data.get('reg_no')
+        password = data.get('password') 
         try:
-            reg_no = data.get('reg_no').lower()
-            password = data.get('password')
             #reg = models.StudentUserProfile.objects.filter(reg_no=reg_no).lower()
             user = authenticate(request, reg_no=reg_no, password=password)
             
@@ -144,14 +144,14 @@ class StudentLoginView(APIView):
                     login(request, user)
                     return Response({'success': 'User authenticated'})
             else:
-                return Response({"error": "Invalid credential"}, status=401)
+                return Response({"error": "Invalid credential(s)"})
         except:
-            return Response({"error": "something went wrong while logging in"})
+            return Response({"error": "something went wrong"})
         
         
         
 ### Teacher login view
-@method_decorator(ensure_csrf_cookie, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class TeacherLoginView(APIView):
     permission_classes = (permissions.AllowAny,)
     
@@ -196,10 +196,10 @@ class AccountDelete(APIView):
             return Response({'error': 'Something went wrong'})
         
 ## Fetch Student Profile View
+@method_decorator(csrf_exempt, name='dispatch')
 class GetStudentUsersProfileVeiw(APIView):
     def get(self, request, format=None):
         try:
-            
             user = self.request.user
             username = user.username
             user = User.objects.get(id=user.id)
@@ -210,22 +210,23 @@ class GetStudentUsersProfileVeiw(APIView):
             return Response({"error": "Error fetching data"}) 
 
 ### Fetch Teacher Profile View
+@method_decorator(csrf_exempt, name='dispatch')
 class GetTeacherUsersProfileVeiw(APIView):
     def get(self, request, format=None):
-        try:
-            user = self.request.user
-            username = user.username
-            user = User.objects.get(id=user.id)
-            user_profile = models.TeacherUserProfile.objects.get(teacher=user)
-            user_profile_serialized = TeacherUserSerializer(user_profile)
-            return Response({"teacher_profile": user_profile_serialized.data, "username": str(username)})
-        except:
-            return Response({"error": "Error fetching data"})
+        # try:
+        user = self.request.user
+        username = user.username
+        user = User.objects.get(id=user.id)
+        user_profile = models.TeacherUserProfile.objects.get(teacher=user)
+        user_profile_serialized = TeacherUserSerializer(user_profile)
+        return Response({"teacher_profile": user_profile_serialized.data, "username": str(username)})
+        # except:  
+        #     return Response({"error": "Error fetching data"})
             
 
 
 ## Student Profile Update View
-@method_decorator(ensure_csrf_cookie, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class UpdateStudentUserProfileView(APIView):
     def put(self, request, format=None):
         try:
@@ -256,7 +257,7 @@ class UpdateStudentUserProfileView(APIView):
     
     
 ## Teacher Profile Update view
-@method_decorator(ensure_csrf_cookie, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class UpdateTeacherUserProfile(APIView):
     def put(self, request, format=None):
         try:
@@ -293,54 +294,68 @@ class StudentDetail(generics.RetrieveAPIView):
     serializer_class = StudentUserSerializer
     permission_classes = [permissions.IsAuthenticated]
     
+    
+class StudentList(generics.ListAPIView):
+    queryset = models.StudentUserProfile.objects.all()
+    serializer_class = StudentUserSerializer
+    permission_classes = (permissions.AllowAny,)
+    
+class TeacherList(generics.ListAPIView):
+    queryset = models.TeacherUserProfile.objects.all()
+    serializer_class = TeacherUserSerializer
+    permission_classes = (permissions.AllowAny,)
+    
+
 class TeacherDetail(generics.RetrieveAPIView):
     queryset = models.TeacherUserProfile.objects.all()
     serializer_class = StudentUserSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(csrf_exempt, name='dispatch')
 class StudentSendCodeView(APIView):
     permission_classes = (permissions.AllowAny,)
     def post(self, request, format=None):
-        data = self.request.data 
-        
+        data = self.request.data
         try:
-            email = data.get('email')
-            reg_no = data.get('reg_no').lower()
-            student = models.StudentUserProfile.objects.get(email=email)
+            try:
+                email = data.get('email')
+                reg_no = data.get('reg_no').lower()
+                student = models.StudentUserProfile.objects.get(email=email)  
                 
-            
-            if models.StudentUserProfile.objects.filter(email=email, reg_no=reg_no).exists():
-                ## Clear the existing verification code in the database
-                if student:
-                    student.verification_code=None
-                    student.code_expiration = None
-                    student.save()
-                    
-                    # Generate and send a new verification code in the database
-                    # And generate new code at each request
-                    code = ''.join(random.choices('0123456789', k=6))
-                    email_body = render_to_string('password_reset_email.html', {'code': code})
-                    expiration_time = timezone.now() + datetime.timedelta(minutes=10)
-                    send_mail("password reset verification code", None,
-                            settings.DEFAULT_FROM_EMAIL, [email],
-                            html_message=email_body, 
-                            fail_silently=False,
-                            )
-                    # store the code in the databse for later verification
-                    student.verification_code = code
-                    student.code_expiration = expiration_time
-                    student.save()
-                    return Response({"success": "Verification code sent successfully"}, status=status.HTTP_200_OK)
+                if models.StudentUserProfile.objects.filter(email=email, reg_no=reg_no).exists():
+                    ## Clear the existing verification code in the database
+                    if student:
+                        student.verification_code=None
+                        student.code_expiration = None
+                        student.save()
+                        
+                        # Generate and send a new verification code in the database
+                        # And generate new code at each request
+                        code = ''.join(random.choices('0123456789', k=6))
+                        email_body = render_to_string('password_reset_email.html', {'code': code})
+                        expiration_time = timezone.now() + datetime.timedelta(minutes=10)
+                        send_mail("password reset verification code", None,
+                                settings.DEFAULT_FROM_EMAIL, [email],
+                                html_message=email_body, 
+                                fail_silently=False,
+                                )
+                        # store the code in the databse for later verification
+                        student.verification_code = code
+                        student.code_expiration = expiration_time
+                        student.save()
+                        return Response({"success": "Verification code sent successfully"}, status=status.HTTP_200_OK)
+                    else:
+                        return Response({"error": "Invalid email"})
                 else:
-                    return Response({"error": "Invalid email"})
-            else:
-                return Response({"error": "Invalid Registration number"})
+                    return Response({"error": "Invalid Registration number"})
+                    
+            except ObjectDoesNotExist:
+                return Response({"error": "No Account matching query found"})
         except:
-            return Response({"error", "Something went wrong"})
+            return Response({"error": "Something went wrong, check your connection"})
         
 
-@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(csrf_exempt, name='dispatch')
 class StudentVerifyCodeView(APIView):
     permission_classes = (permissions.AllowAny,)   
     def post(self, request, format=None):
@@ -376,28 +391,25 @@ class StudentVerifyCodeView(APIView):
                 else:
                     return Response({'error': "Invalid email or registraton number"})
             else:
-                return Response({"error:" "Expired or invalid registration code"})
+                return Response({"error": "Expired or invalid registration code"})
         except:
             return Response({"error": "Something went wrong"})
 
-@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(csrf_exempt, name='dispatch')
 class TeacherSendCodeView(APIView):
     permission_classes = (permissions.AllowAny,)
     
     def post(self, request, format=None):
         data = self.request.data 
-        
         try:
             email = data["email"]
             teacher = models.TeacherUserProfile.objects.get(email=email)
-            # try:
-            
-            if models.TeacherUserProfile.objects.filter(email=email).exists():
+            #Generate codes
+            if teacher:
                 teacher.verification_code = None 
                 teacher.code_expiration = None
                 teacher.save()
                 
-                #Generate codes
                 code = ''.join(random.choices('0123456789ABCDEF', k=8))
                 email_body = render_to_string('password_reset_email.html', {'code': code})
                 expiration_time = timezone.now() + datetime.timedelta(minutes=10)
@@ -411,52 +423,49 @@ class TeacherSendCodeView(APIView):
                             fail_silently=False) 
                 return Response({"success": "Verification code sent successfully"})
             else:
-                return Response({"error": "Invalid Account"})
-            #except:
-                #return Response({"error": "We are sorry, something went wrong"})
+                return Response({"error": "Not a registered email"})
         except:
-            return Response({"error": "Something went wrong"})
+            return Response({"error": "Wrong email or connection"})
+        # except:
+        #     return Response({"error": "Something went wrong"})
         
         
-@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(csrf_exempt, name='dispatch')
 class TeacherVerifyCodeView(APIView):
     permission_classes = (permissions.AllowAny,)
     def post(self, request, format=None):
         data = self.request.data
-        try:
-            email = data['email']
-            new_password = data['new_password']
-            re_new_password = data['re_new_password']
-            code = data['code']
-            teacher = models.TeacherUserProfile.objects.get(email=email)
-            teacher_profile = models.TeacherUserProfile.objects.filter(email=email, verification_code=code)
-            
-            if not teacher.is_code_expired() and code == teacher.verification_code:
-                if teacher:
-                    if teacher_profile.exists():
-                        if code == teacher.verification_code:
-                            if not teacher.is_code_expired():
-                                if len(new_password) < 8:
-                                    return Response({"error": "Passwords must be at least 8 characters"})
-                                else:
-                                    if new_password != re_new_password:
-                                        return Response({"error": "Passwords do not match"})
-                                    else:
-                                        user = teacher.teacher
-                                        user.set_password(new_password)
-                                        user.save()
-                                        return Response({"success": "Password reset successful"})
+        email = data['email']
+        re_new_password = data['re_new_password']
+        new_password = data['new_password']
+        code = data['code']
+        teacher = models.TeacherUserProfile.objects.get(email=email)
+        teacher_profile = models.TeacherUserProfile.objects.filter(email=email, verification_code=code)
+        
+        if not teacher.is_code_expired() and code == teacher.verification_code:
+            if teacher:
+                if teacher_profile.exists():
+                    if code == teacher.verification_code:
+                        if not teacher.is_code_expired():
+                            if len(new_password) < 8:
+                                return Response({"error": "Passwords must be at least 8 characters"})
                             else:
-                                return Response({"error": "Expired code"})
+                                if new_password != re_new_password:
+                                    return Response({"error": "Passwords do not match"})
+                                else:
+                                    user = teacher.teacher
+                                    user.set_password(new_password)
+                                    user.save()
+                                    return Response({"success": "Password reset successful"})
                         else:
-                            return Response({"error": "Invalid verification code"})
+                            return Response({"error": "Expired code"})
                     else:
-                        return Response({"error": "Invalid code"})
-                
-                else :
-                    return Response({"error": "Invalid Account" })
-            else:
-                return Response({'error': "Invalid or expired code"})
-        except:
-            return Response({"error": "Something went wrong"})
+                        return Response({"error": "Invalid verification code"})
+                else:
+                    return Response({"error": "Invalid code"})
+            
+            else :
+                return Response({"error": "Invalid Account" })
+        else:
+            return Response({'error': "Invalid or expired code"})
     

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from . import models 
-
+from Account.models import TeacherUserProfile
 
 class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
@@ -82,14 +82,13 @@ class StudentCreateSerializer(serializers.ModelSerializer):
     fields = [
       'id', 'full_name', 'admission_letter', 'email', 'password', 'password2', 'qualification', 'interested_course'
     ]
-    
-    
+     
 class StudentErollSerializer(serializers.ModelSerializer):
   class Meta:
     model = models.StudentCourseEnrollment
     fields = ['id', 'course', 'student', 'enrolled_time']
+    lookup_field = 'pk'
     
-
 class EnrolledStudentSerializer(serializers.ModelSerializer):
   class Meta:
     model = models.StudentCourseEnrollment
@@ -114,14 +113,14 @@ class CourseRatingSerializer(serializers.ModelSerializer):
 class StudentFavoriteCourseSerilizer(serializers.ModelSerializer):
   class Meta:
     model = models.StudentFavouriteCourse
-    fields = ['id', 'course', 'student', 'status']
+    fields = '__all__'
   
   def __init__(self, *args, **kwargs):
     super(StudentFavoriteCourseSerilizer, self).__init__(*args, **kwargs)
     request = self.context.get('request')
     self.Meta.depth = 0
-    if request and request.method =='GET':
-      self.Meta.depth = 2
+    if request and request.method == 'GET':
+      self.Meta.depth = 1
       
 
 class StudentAssignmentSerializer(serializers.ModelSerializer):

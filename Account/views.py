@@ -21,11 +21,12 @@ from django.utils.decorators import method_decorator
 from .serializers import StudentUserSerializer, TeacherUserSerializer
 
 # Create your views here.
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class CheckIsAuthenticated(APIView):
     def get(self, request, format=None):
-        isAuthenticated = User.is_authenticated
+        user = self.request.user
         try:
+            isAuthenticated = user.is_authenticated
             if isAuthenticated:
                 return Response({"isAuthenticated": "success"})
             else:
@@ -33,6 +34,21 @@ class CheckIsAuthenticated(APIView):
         except:
             return Response({"error": "Error checking authentication status"})
 
+
+
+class CheckIsAuthenticated_student(APIView):
+    def get(self, request, format=None):
+        user = self.request.user
+        try:
+            isAuthenticated = user.is_authenticated    
+            if isAuthenticated:
+                return Response({"IsAuthenticated_student": "success"})
+            else:
+                return Response({"IsAuthenticated_student": "error"})
+        except:
+            return Response({"error": "Error checking authentication status"})
+        
+        
 @method_decorator(csrf_exempt, name='dispatch')
 class StudentSignUpView(APIView):
     permission_classes = (permissions.AllowAny,)
@@ -62,11 +78,9 @@ class StudentSignUpView(APIView):
                                     return Response({"error": "Email already exists"})
                                 else:
                                     user = User.objects.create_user(username=username, password=password)
-                                    user.save()
                                     user = User.objects.get(id=user.id) 
-                                    student_profile = models.StudentUserProfile(student=user, first_name='', last_name='',
+                                    models.StudentUserProfile.objects.create(student=user, first_name='', last_name='',
                                                         phone='', country='', state='', email=email, postal='', reg_no=reg_no, hobbies='', is_student=True)
-                                    student_profile.save()
                                     return Response({'success': 'Student acount created successfully!'})
                                     
                         else:
@@ -103,14 +117,11 @@ class TeacherSignupView(APIView):
                             return Response({"error": "Email already exists"})
                         else:
                             user = User.objects.create_user(username=username, password=password)
-                            user.save()
 
                             user = User.objects.get(id=user.id)
-                            teacher_profile = models.TeacherUserProfile(teacher=user, is_teacher=True, phone='', country='', state='',
+                            models.TeacherUserProfile.objects.create(teacher=user, is_teacher=True, phone='', country='', state='',
                                                                         postal='', course=course, hobbies='', email=email,)
-                            teacher_profile.save()
                             return Response({"success": "Account created successfully"})
-                        
                         
             else:
                 return Response({'error': 'passwords do not match'})
@@ -118,11 +129,11 @@ class TeacherSignupView(APIView):
             return Response({"error": "Something went wrong on teacher registration"})
     
 
-# @method_decorator(csrf_exempt, name='dispatch')
-# class getCSRFToken(APIView):
-#     permission_classes = (permissions.AllowAny,)
-#     def get(self, request, format=None):
-#         return Response({'success': 'CSRF cookie set'}) 
+@method_decorator(csrf_exempt, name='dispatch')
+class getCSRFToken(APIView):
+    permission_classes = (permissions.AllowAny,)
+    def get(self, request, format=None):
+        return Response({'success': 'CSRF cookie set'}) 
     
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -170,14 +181,13 @@ class TeacherLoginView(APIView):
                 else:
                     return Response({"error": "You are suspended from IMTech online, please contact the management"})
             else:
-                return Response({"error": "Invalid password or email"})
+                return Response({"error": "Invalid email or password"})
         except: 
             return Response({"error": "Something went wrong on teacher login"})
 
 ### Account logout view
 class LogoutView(APIView):
     def post(self, request, format=None):
-        
         try: 
             auth.logout(request)
             return Response({"success": "Loggout Out"})
@@ -202,10 +212,10 @@ class GetStudentUsersProfileVeiw(APIView):
         try:
             user = self.request.user
             username = user.username
-            user = User.objects.get(id=user.id)
+            studentId = user.id
             user_profile = models.StudentUserProfile.objects.get(student=user)
             user_profile_serialized = StudentUserSerializer(user_profile)
-            return Response({"student_profile": user_profile_serialized.data, "username": str(username)})
+            return Response({"student_profile": user_profile_serialized.data, "username": str(username), "studentId": str(studentId)})
         except:
             return Response({"error": "Error fetching data"}) 
 
@@ -213,17 +223,15 @@ class GetStudentUsersProfileVeiw(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class GetTeacherUsersProfileVeiw(APIView):
     def get(self, request, format=None):
-        # try:
-        user = self.request.user
-        username = user.username
-        user = User.objects.get(id=user.id)
-        user_profile = models.TeacherUserProfile.objects.get(teacher=user)
-        user_profile_serialized = TeacherUserSerializer(user_profile)
-        return Response({"teacher_profile": user_profile_serialized.data, "username": str(username)})
-        # except:  
-        #     return Response({"error": "Error fetching data"})
-            
-
+        try:
+            user = self.request.user
+            username = user.username
+            teacherId = user.id
+            user_profile = models.TeacherUserProfile.objects.get(teacher=user)
+            user_profile_serialized = TeacherUserSerializer(user_profile)
+            return Response({"teacher_profile": user_profile_serialized.data, "username": str(username), "teacherId": str(teacherId)})
+        except:  
+            return Response({"error": f"Error fetching data {user}"})
 
 ## Student Profile Update View
 @method_decorator(csrf_exempt, name='dispatch')
@@ -264,6 +272,7 @@ class UpdateTeacherUserProfile(APIView):
                 
             user = self.request.user
             username = user.username 
+            studentId = user.id
             
             data = self.request.data
             first_name = data["first_name"]
@@ -283,7 +292,7 @@ class UpdateTeacherUserProfile(APIView):
             user_profile = models.TeacherUserProfile.objects.get(teacher=user)
             user_profile_serialized = TeacherUserSerializer(user_profile)
             
-            return Response({"teacher_profile": user_profile_serialized.data, "username": str(username)}) 
+            return Response({"teacher_profile": user_profile_serialized.data, "username": str(username), "studentId": str(studentId)}) 
         except:
             return Response({"error": "Something went wrong while updating"})
 
@@ -425,7 +434,7 @@ class TeacherSendCodeView(APIView):
             else:
                 return Response({"error": "Not a registered email"})
         except:
-            return Response({"error": "Wrong email or connection"})
+            return Response({"error": "Something went wrong"})
         # except:
         #     return Response({"error": "Something went wrong"})
         

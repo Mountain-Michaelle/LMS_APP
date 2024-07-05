@@ -7,13 +7,17 @@ from .serializers import TeacherSerializer,CourseCategorySerilizer, \
     CourseListSerializer, CourseChapterSerializer, CourseSerializer2, \
     StudentCreateSerializer, StudentErollSerializer, EnrolledStudentSerializer, CourseRatingSerializer, \
     CourseChapterSerializerGet, StudentFavoriteCourseSerilizer, StudentAssignmentSerializer, StudentAssignmentSubmitSerializer
-   
+from rest_framework.response import Response
+from lms_api.models import Course
+from lms_api.models import Student
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework import permissions
 from rest_framework import generics, viewsets
-
+from Account.models import TeacherUserProfile, StudentUserProfile
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 @method_decorator(csrf_exempt, name="dispatch")
@@ -23,10 +27,10 @@ class TeacherList(generics.ListCreateAPIView):
     #permission_classes=[permissions.IsAuthenticated]
 
 class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes=[permissions.IsAuthenticated]
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
     lookup_field = 'pk'
-    #permission_classes=[permissions.IsAuthenticated]
 
 @csrf_exempt
 def teacher_login(request):
@@ -44,24 +48,24 @@ def teacher_login(request):
     else:
         return JsonResponse({'login': False})
     
+@method_decorator(csrf_exempt, name="dispatch")
 class CourseCategoryList(generics.ListCreateAPIView):
     queryset = CourseCategory.objects.all()
     serializer_class = CourseCategorySerilizer
     # Permission classes here  
 
-
+@method_decorator(csrf_exempt, name="dispatch")
 class CourseList(generics.ListCreateAPIView):
-    queryset = Course.objects.all()
+    #queryset = Course.objects.all()
     serializer_class = CourseListSerializer
     # Permission class here
-    
     # Usage of slice to get only some amount of course not all
     def get_queryset(self):
-        qs = super().get_queryset()
+        # qs = super().get_queryset()
         if 'result' in self.request.GET:
             limit = int(self.request.GET['result'])
-            qs = Course.objects.all().order_by('-id')[:limit]
-        return qs
+            return Course.objects.all().order_by('-id')[:limit]
+       
 
 
 # Courses specific to a teacher
@@ -70,7 +74,7 @@ class TeacherCourse(generics.ListAPIView):
     
     def get_queryset(self):
         teacher_id = self.kwargs['teacher_id']
-        teacher = Teacher.objects.get(pk=teacher_id)
+        teacher = User.objects.get(id=teacher_id)
         return Course.objects.filter(teacher=teacher)
     
 class TeacherCourseDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -136,14 +140,14 @@ def student__login(request):
         return JsonResponse({'login': False})     
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 
 class StudentEnrollmentView(generics.ListCreateAPIView):
     serializer_class = StudentErollSerializer
     queryset = StudentCourseEnrollment.objects.all()
-    
 
 def fetch_enrolled_student(request, course_id, student_id):
-    student = Student.objects.filter(id=student_id).first()
+    student = User.objects.filter(id=student_id).first()
     course = Course.objects.filter(id=course_id).first()
     studentEnrol = StudentCourseEnrollment.objects.filter(student=student).count()
     enrolledStatus = StudentCourseEnrollment.objects.filter(course=course, student=student).count()
@@ -151,7 +155,28 @@ def fetch_enrolled_student(request, course_id, student_id):
         return JsonResponse({'enrolled':True, 'studentEnrol':studentEnrol})  
     else:
         return JsonResponse({'enrolled': False})
+
+class CourseEnrolment(APIView):
     
+    def post(self, request, format=None):
+        data = self.request.data
+        student_id = data['student']
+        course_id = data['course']
+        user = self.request.user
+        
+        if User.objects.filter(id=student_id).exists():
+            course_instance = get_object_or_404(Course, pk=course_id)
+            student_instance = get_object_or_404(User, pk=student_id)
+            is_active = User.objects.filter(id=student_id).exists()
+            print(is_active)
+            print(f'{course_id} \n')
+            
+            enrolled_course = StudentCourseEnrollment(course=course_instance, student=student_instance)
+            enrolled_course.save()
+            return Response({"success": "Course enrolment is successful"})
+        else:
+            return Response({"error": "User does not exists"})
+        
 
 class EnrrolledStudentList(generics.ListAPIView):
     queryset=StudentCourseEnrollment.objects.all()
@@ -166,7 +191,7 @@ class EnrrolledStudentList(generics.ListAPIView):
 class FetchedEnrolledStudentLIst(generics.ListAPIView):
     #queryset = StudentCourseEnrollment.objects.order_by('enrolled_time')
     serializer_class = EnrolledStudentSerializer
-    
+
     def get_queryset(self):
         course_id = self.kwargs['course_id']
         course = Course.objects.get(pk=course_id)
@@ -192,20 +217,50 @@ class CourseRatingSingleView(generics.ListAPIView):
     
 ## Fetching rating status Views, using a function based view
 
-def fetch_rating_status(request, student_id, course_id):
-    student = Student.objects.filter(id=student_id).first()
-    course = CourseChapter.objects.filter(id=course_id).first()
-    ratingStatus = CourseRating.objects.filter(course=course, student=student).count()
+# def fetch_rating_status(request, student_id, course_id):
+#     student = User.objects.filter(id=student_id).first()
+#     course = CourseChapter.objects.filter(id=course_id).first()
+#     ratingStatus = CourseRating.objects.filter(course=course, student=student).count()
     
-    if ratingStatus:
-        return JsonResponse({'hasRated': True})
-    else:
-        return JsonResponse({'hasRated': False})
+#     if ratingStatus:
+#         return JsonResponse({'hasRated': True})
+#     else:
+#         return JsonResponse({'hasRated': False})
 
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RatingStatus(APIView):
+    def post(self, request, format=None):
+        data = self.request.data
+        
+        studentId = data['studentId']
+        course_id = data['course_id']
+        
+        student = User.objects.filter(id=studentId).first()
+        course = CourseChapter.objects.filter(id=course_id).first()
+        ratingStatus = CourseRating.objects.filter(course=course, student=student).count()
+        
+        if ratingStatus:
+            return JsonResponse({'hasRated': True})
+        else:
+            return JsonResponse({'hasRated': False})
+        
+        
 ### Add Favourite
 class StudentFavoriteCourseListView(generics.ListCreateAPIView):
     queryset = StudentFavouriteCourse.objects.order_by('-course')
     serializer_class =  StudentFavoriteCourseSerilizer
+    
+class StudentFavCourse(APIView):
+    def post(self, request, format=None):
+        data = self.request.data
+        studentId = data['studentId']
+        student = User.objects.get(pk=studentId)
+        queryset = StudentFavouriteCourse.objects.filter(student=student)
+        queryset_serialized = StudentFavoriteCourseSerilizer(queryset)
+        
+        return Response(queryset_serialized.data)
+
 
 ## Remove Favourite;
 
@@ -218,6 +273,7 @@ def fetch_favorite_course_status(request, student_id, course_id):
         return JsonResponse({"favorite": True})
     else:
         return JsonResponse({"favorite": False})
+
 
 def remove_favorite_course(request, course_id, student_id):
     student = Student.objects.filter(id=student_id).first()

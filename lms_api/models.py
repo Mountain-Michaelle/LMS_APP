@@ -1,7 +1,10 @@
 from django.utils import timezone
+from django.contrib.auth.models import User
 from django.db import models
 from django.core import serializers
-
+from Account.models import TeacherUserProfile
+from Account.models import StudentUserProfile
+import math
 # Create your models here.
 
 # Teacher Model
@@ -58,13 +61,13 @@ class CourseCategory(models.Model):
 class Course(models.Model):
     id = models.AutoField(primary_key=True)
     category = models.ForeignKey(CourseCategory, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='teacher_course')
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teacher_course')
     topic = models.CharField(max_length=200)
     description = models.TextField()
     course_duration = models.CharField(max_length=10)
     time = models.DateTimeField(auto_now=True)
     course_image = models.ImageField(upload_to='course_image/%Y/%m/%d/', default=None, blank=True, null=True)
-    
+
     class Meta:
         verbose_name_plural="Courses"
     
@@ -78,7 +81,7 @@ class Course(models.Model):
     
     def average_rating(self):
         average_rating = CourseRating.objects.filter(course=self).aggregate(models.Avg('rating'))
-        return  average_rating
+        return  math.round(average_rating, 2)
         
     def __str__(self):
         return self.topic
@@ -93,14 +96,11 @@ class CourseChapter(models.Model):
     
     def average_rating(self):
         average_rating = CourseRating.objects.filter(course=self).aggregate(models.Avg('rating'))
-        return  average_rating
+        return average_rating
         
     def __str__(self):
         return self.title.title()
     
-
-     
-     
 class Student(models.Model):
     id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
@@ -119,48 +119,44 @@ class Student(models.Model):
 
 class StudentCourseEnrollment(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrolled_courses')
-    student  = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrolled_student')
+    student  = models.ForeignKey(User, on_delete=models.CASCADE, related_name='enrolled_student')
     enrolled_time = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         verbose_name_plural ="Enrolled Courses"
 
-
 class CourseRating(models.Model):
     course = models.ForeignKey(CourseChapter, on_delete=models.CASCADE, related_name='rated_courses')
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='rated_student')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rated_student')
     rating = models.PositiveIntegerField(default=1)
     review = models.TextField(max_length=211, null=True, blank=True)
     rated_date = models.DateField(auto_now_add=True)
     
     def __str__(self):
         return f'{self.course}-{self.student} rates => {self.rating}'
-    
 
 # Course Favorite functionality
 class StudentFavouriteCourse(models.Model):
-    course=models.ForeignKey(Course, on_delete=models.CASCADE)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course=models.ForeignKey(CourseChapter, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
     
     class Meta:
-        verbose_name_plural="7. Student Favorite Course"
-    
+        verbose_name_plural = "7. Student Favorite Course"
+
     def __str__(self):
         return f"{self.course} => {self.student}"
-    
-    
+
 class StudentAssignment(models.Model):
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     title = models.CharField(max_length=250)
     detail = models.TextField()
     documents = models.FileField(upload_to='student/assignments', null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
-
 class StudentAssignmentSubmission(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE) 
     answer = models.TextField()
     date = models.DateTimeField(auto_now_add=True)

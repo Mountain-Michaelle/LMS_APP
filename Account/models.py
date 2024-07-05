@@ -26,7 +26,6 @@ class CustommRegField(models.CharField):
         value = super().pre_save(model_instance, add)
         return value.lower()
 
-
 class StudentUserProfile(models.Model):
     student = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=255, default="",  blank=True, null=True)
@@ -50,7 +49,7 @@ class StudentUserProfile(models.Model):
         return self.code_expiration is None or self.code_expiration < timezone.now()
         
     def __str__(self):
-        return self.first_name
+        return self.reg_no
     
 class TeacherUserProfile(models.Model):
     teacher = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -71,4 +70,4 @@ class TeacherUserProfile(models.Model):
         return self.code_expiration is None or self.code_expiration < timezone.now()
     
     def __str__(self):
-        return self.first_name
+        return self.email

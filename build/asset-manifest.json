@@ -1,0 +1,34 @@
+{
+  "files": {
+    "main.css": "/static/css/main.ba56cb68.css",
+    "main.js": "/static/js/main.b366d39a.js",
+    "static/media/InShot_20230602_022825183.mp4": "/static/media/InShot_20230602_022825183.756cd15115cf2d4899bc.mp4",
+    "static/media/Iboadage.jpg": "/static/media/Iboadage.bd7d578d0f09314e3fdc.jpg",
+    "static/media/icon.jpg": "/static/media/icon.c73f3726e328c897ede4.jpg",
+    "static/media/NFCS Matriculation.jpg": "/static/media/NFCS Matriculation.93a7e9941bb6568f57db.jpg",
+    "static/media/Page2.jpg": "/static/media/Page2.7aee09ec0c8e92ab817b.jpg",
+    "static/media/Page.jpg": "/static/media/Page.47f489632fb88bbc091b.jpg",
+    "static/media/CourseBook.png": "/static/media/CourseBook.50d5f35fae76d1d4ea6a.png",
+    "static/media/allstarz..jpg": "/static/media/allstarz..d43a5df02019c82cd095.jpg",
+    "static/media/BooksPen.png": "/static/media/BooksPen.edd6747528d9ea78e4d6.png",
+    "static/media/backgrd.png": "/static/media/backgrd.5b45da40622aaa029b44.png",
+    "static/media/pngwing.com (1).png": "/static/media/pngwing.com (1).5b45da40622aaa029b44.png",
+    "static/media/Upper.png": "/static/media/Upper.1159d1f511702be5fba6.png",
+    "static/media/nature-3082832_960_720.jpg": "/static/media/nature-3082832_960_720.8ed27970273d4bbe71b1.jpg",
+    "static/media/agonizing jesus.png": "/static/media/agonizing jesus.65bb043d781e32a61445.png",
+    "static/media/no_img.jpg": "/static/media/no_img.cafed4edf844b8dad4cc.jpg",
+    "static/media/ImageDesc.png": "/static/media/ImageDesc.bae4fd7971fdac5d0b13.png",
+    "static/media/cos.png": "/static/media/cos.0921dc36079419fb331c.png",
+    "static/media/IMtech.png": "/static/media/IMtech.239ba33dd14273e74668.png",
+    "static/media/school.png": "/static/media/school.92180488c4951df87e4e.png",
+    "static/media/Course2.jpg": "/static/media/Course2.c631a1cafa717eec4013.jpg",
+    "static/media/anonymous.jfif": "/static/media/anonymous.83bf69a62fe8dfff1252.jfif",
+    "index.html": "/index.html",
+    "main.ba56cb68.css.map": "/static/css/main.ba56cb68.css.map",
+    "main.b366d39a.js.map": "/static/js/main.b366d39a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ba56cb68.css",
+    "static/js/main.b366d39a.js"
+  ]
+}

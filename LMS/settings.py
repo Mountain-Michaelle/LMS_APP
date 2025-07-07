@@ -197,3 +197,13 @@ AUTHENTICATION_BACKENDS = [
 CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1:8000" ]
 CSRF_COOKIE_NAME = 'csrftoken'
 CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React dev
+    "https://yourfrontend.com"  # If deployed
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "https://yourfrontend.com"
+]
